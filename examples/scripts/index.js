@@ -25,7 +25,7 @@ import MatrixIVSample2 from '../matrixIV2';
 import MatrixIVSample3 from '../matrixIV3';
 import Pseudo3dCanvasSample from '../pseudo-3d-canvas';
 
-// import VideoProgressSample from '../playground/video-progress';
+import VideoProgressSample from '../video-progress';
 
 import XSample from '../x';
 import X2Sample from '../x2';
@@ -45,7 +45,7 @@ const samples = {
   'catmullRomSample': CatmullRomSample,
   'hermitCurveSample': HermiteCurveSample,
   'bezierCurveSample': BezierCurveSample,
-  // 'videoProgressSample': VideoProgressSample,
+  'videoProgressSample': VideoProgressSample,
   'matrixIVSample': MatrixIVSample,
   'matrixIVSample2': MatrixIVSample2,
   'matrixIVSample3': MatrixIVSample3,

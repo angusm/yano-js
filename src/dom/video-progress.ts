@@ -1,9 +1,8 @@
 
 
-import { Defer } from '../../src/func/defer';
-import { func } from '../../src/func/func';
-import { mathf } from '../../src/mathf/mathf';
-import { WebWorker } from "../../src/dom/web-worker";
+import { Defer } from '../func/defer';
+import { func } from '../func/func';
+import { mathf } from '../mathf/mathf';
 
 /**
  * See /examples/playground video progress for a sample.
