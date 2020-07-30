@@ -15,6 +15,8 @@ import { CubicBezier } from '../mathf/cubic-bezier';
 
 export const LottieScrollEvents = {
     INIT: 'INIT',
+    LOADED: 'LOADED',
+    CONFIG_READY: 'CONFIG_READY',
     PROGRESS_UPDATE: 'LOTTIE_SCROLL_EVENT'
 }
 
@@ -247,6 +249,7 @@ export class LottieController {
 
                 this.lottieObjects.push(data);
             })
+
             this.createLottieInstances();
         }
 
@@ -299,13 +302,20 @@ export class LottieController {
         const progress = this.currentProgress;
         this.progressUpdate(Math.max(0, progress - 0.01), 0);
 
+
+        this.resizeLottie();
+        this.progressUpdate(progress, 0);
+    }
+
+
+    protected resizeLottie() {
         this.lottieObjects.forEach((lottieObject) => {
             if (lottieObject.lottieInDom) {
-                lottieObject.lottieInstance.resize();
+                if (lottieObject.lottieInstance.isLoaded) {
+                  lottieObject.lottieInstance.resize();
+                }
             }
         })
-
-        this.progressUpdate(progress, 0);
     }
 
 
@@ -363,8 +373,46 @@ export class LottieController {
 
                 this.lottieObjects[i].lottieInstance = lottieInstance;
 
-                // Also update the end frame if it hasn't been specified.
+
+
+                // Dom loaded event.
                 lottieInstance.addEventListener('DOMLoaded', () => {
+                    // Add init
+                    this.lottieObjects[i].lottieInDom = true;
+
+                    // Run window resize once.
+                    this.resizeLottie();
+
+                    // Update and render immediately after it loads.
+                    this.updateImmediately();
+
+
+                    const payload: LottieScrollInitPayload = {
+                        controller: this,
+                    }
+                    dom.event(this.element, LottieScrollEvents.LOADED, payload);
+
+                    requestAnimationFrame(()=> {
+                        setTimeout(()=> {
+                          this.element.classList.add('lottie-scroll-loaded');
+                        })
+                    })
+                }, { once: true });
+
+                // Add events for config_ready.
+                lottieInstance.addEventListener('config_ready', () => {
+                    const payload: LottieScrollInitPayload = {
+                        controller: this,
+                    }
+                    dom.event(this.element, LottieScrollEvents.CONFIG_READY, payload);
+
+                    requestAnimationFrame(()=> {
+                        this.element.classList.add('lottie-scroll-config-ready');
+                    })
+                }, { once: true });
+
+
+
                     if (this.lottieObjects[i].endFrame == 0) {
                         this.lottieObjects[i].endFrame = lottieInstance.totalFrames;
                     }
@@ -435,8 +483,6 @@ export class LottieController {
                         );
                         this.lottieObjects[i].cssInterpolatorInstance.useBatchUpdate(true);
 
-                        this.lottieObjects[i].lottieInDom = true;
-
 
                         // Run window resize once.
                         this.onWindowResize();
@@ -448,24 +494,23 @@ export class LottieController {
                         }
 
 
-                        // Add loaded class to mark it is ready.
-                        // Put to bottom of event queue for intro sequence to startup.
+                        // Add init
                         window.setTimeout(() => {
-                            this.element.classList.add('lottie-scroll-loaded');
+                            this.element.classList.add('lottie-scroll-init');
+
+                            const payload: LottieScrollInitPayload = {
+                                controller: this,
+                            }
+                            dom.event(this.element, LottieScrollEvents.INIT, payload);
                         })
                     } else {
                         // Run window resize once.
                         this.onWindowResize();
                     }
 
-                    const payload: LottieScrollInitPayload = {
-                        controller: this,
-                    }
-                    dom.event(this.element, LottieScrollEvents.INIT, payload);
 
                     // Update and render immediately after it loads.
                     this.updateImmediately();
-                }, { once: true });
             });
         })
     }
@@ -1018,6 +1063,9 @@ export class LottieController {
  *           console.log(scrollEvent.controller); // The controller
  *       });
  *
+ *       this.el.addEventListener(LottieScrollEvents.LOADED, (e:any)=> {
+ *           // Lottie is fully loaded and in dome.
+ *       });
  *       this.el.addEventListener(LottieScrollEvents.PROGRESS_UPDATE, (e:any)=> {
  *           const scrollEvent:LottieScrollEventPayload = e.detail;
  *           console.log(scrollEvent.progress); // current progress
